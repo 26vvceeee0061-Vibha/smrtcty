@@ -409,7 +409,11 @@ export function createApiHandler({
         );
       }
 
-      throw new ApiError(404, 'API route not found.', 'not_found');
+      throw new ApiError(
+        404,
+        `API route not found for pathname "${pathname}" (url: "${request.url}").`,
+        'not_found',
+      );
     } catch (error) {
       if (error instanceof ApiError) {
         sendJson(
