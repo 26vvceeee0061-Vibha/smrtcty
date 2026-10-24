@@ -6,7 +6,7 @@ import { ChatOpenAI } from '@langchain/openai';
 import { formatMetric, formatUnit } from '../src/lib/format.js';
 
 export const LOCAL_MODEL = 'quantum-flux-rules-v1';
-export const PROMPT_VERSION = 'operations-brief-v1';
+export const PROMPT_VERSION = 'operations-brief-v2';
 
 const RISK_LEVELS = new Set(['stable', 'guarded', 'elevated', 'critical']);
 
@@ -17,16 +17,32 @@ const HEADLINES = {
   critical: 'Dual-network shortage requires immediate coordination',
 };
 
-const SYSTEM_PROMPT = `You are the operations advisor inside Quantum Flux, a smart-city command center.
-Write a concise, specific brief for the current water and electricity operating point.
+const SYSTEM_PROMPT = `You are the chief operations advisor inside Quantum Flux, a smart-city command center.
+Analyze the live urban telemetry for municipal water and electric power networks, explain shortages, and provide authoritative operational direction.
+
+Your analysis must cover these 6 core dimensions:
+1. Resource Situation Summary: Summarize the current operating point using the exact numbers provided.
+2. Supply Sufficiency: State clearly whether water and electricity supplies are sufficient to meet demand.
+3. Priority Resource: Identify which resource needs attention first (water, electricity, both, or none).
+4. Operational Consequences: Detail the likely urban consequences of any deficit (e.g. pressure drops, grid frequency drift, cascading tripping, critical facility impact).
+5. Prioritized Mitigation Measures: Provide 3 to 5 concrete, actionable mitigation measures.
+6. Emergency Protocol & Cross-Sector Directive: Recommend whether immediate emergency protocols, load shedding, or cross-sector transfers (e.g. pausing heavy water pumps to relieve grid strain) are required.
 
 Rules:
-- Use only the numbers supplied in the situation brief. Never invent values.
+- Use only the numbers supplied in the situation brief. Never invent or hallucinate metrics.
 - Risk has already been computed by the resource model; do not contradict it.
-- Be direct and operational. Avoid marketing language, markdown, and emoji.
+- Be direct, professional, and operational. Avoid marketing fluff, markdown formatting, and emoji.
 - recommendations must contain 3 to 5 plain-text actions, each under 220 characters.
 - Return strict JSON with exactly these keys:
-  {"headline": string, "summary": string, "risk": "stable" | "guarded" | "elevated" | "critical", "recommendations": string[]}`;
+  {
+    "headline": string,
+    "summary": string,
+    "risk": "stable" | "guarded" | "elevated" | "critical",
+    "priorityResource": "water" | "electricity" | "both" | "none",
+    "consequences": string,
+    "emergencyProtocol": string,
+    "recommendations": string[]
+  }`;
 
 function deriveRisk(resourceModel) {
   const { shortageCount, unknownCount } = resourceModel.alerts;
@@ -57,6 +73,52 @@ function describeResource(resource) {
   }
 
   return `${resource.name} demand of ${formatUnit(resource.demand, resource.unit)} is exactly matched with no reserve.`;
+}
+
+function deriveOperationalIntelligence({ risk, water, electricity }) {
+  let priorityResource = 'none';
+  let priorityNote = '';
+  let consequences = '';
+  let emergencyProtocol = '';
+
+  const waterShortage = water.status === 'shortage';
+  const powerShortage = electricity.status === 'shortage';
+  const waterUnknown = water.status === 'unknown';
+  const powerUnknown = electricity.status === 'unknown';
+
+  if (waterShortage && powerShortage) {
+    priorityResource = 'both';
+    priorityNote = 'Dual-network emergency: Both sectors require immediate, synchronized operational prioritization.';
+    consequences = `Simultaneous deficits of ${formatUnit(water.shortage, water.unit)} water and ${formatUnit(electricity.shortage, electricity.unit)} power threaten cascading facility shutdowns, critical water treatment tripping, and loss of fire suppression.`;
+    emergencyProtocol = 'Execute Joint Emergency Protocol Alpha: activate emergency diesel backups at water pumping stations, commence coordinated rotational industrial load-shedding, and open emergency regional interconnects.';
+  } else if (waterShortage) {
+    priorityResource = 'water';
+    priorityNote = `Primary priority: Municipal water grid due to an acute ${formatUnit(water.shortage, water.unit)} supply deficit.`;
+    consequences = `A persistent deficit of ${formatUnit(water.shortage, water.unit)} will deplete balance reservoirs within 6 hours, leading to localized pressure loss in high-elevation distribution zones and contamination risks.`;
+    emergencyProtocol = 'Activate Level-2 Water Conservation Protocol: throttle municipal irrigation, pause industrial extraction, and re-route emergency booster pump flows.';
+  } else if (powerShortage) {
+    priorityResource = 'electricity';
+    priorityNote = `Primary priority: Electric power grid facing a ${formatUnit(electricity.shortage, electricity.unit)} capacity deficit.`;
+    consequences = `Substation loading above capacity risks frequency instability, busbar overheating, and unmanaged feeder trips across residential circuits.`;
+    emergencyProtocol = 'Activate Tier-1 Grid Stabilization Protocol: trigger voluntary demand response, curtail non-essential municipal pumping loads, and bring spinning reserve generation online.';
+  } else if (waterUnknown || powerUnknown) {
+    priorityResource = 'telemetry';
+    priorityNote = 'Operational priority: Restore telemetry telemetry integrity to eliminate blind spots.';
+    consequences = 'Incomplete network telemetry limits automated response systems and may mask localized pressure drops or phase imbalances.';
+    emergencyProtocol = 'Dispatch field SCADA diagnostics and maintain conservative dispatch buffers.';
+  } else if (risk === 'guarded') {
+    priorityResource = (water.utilization ?? 0) >= (electricity.utilization ?? 0) ? 'water' : 'electricity';
+    priorityNote = 'Operating at tight margins with minimal operational buffer.';
+    consequences = 'Any unexpected surge in industrial or residential consumption will immediately cause an unmitigated supply deficit.';
+    emergencyProtocol = 'Issue Pre-cautionary Standby Directive: defer scheduled equipment maintenance and place emergency response crews on alert.';
+  } else {
+    priorityResource = 'none';
+    priorityNote = 'Both networks are operating stably within safe capacity buffers.';
+    consequences = 'Nominal urban utility operations with full distribution reliability and positive reserves.';
+    emergencyProtocol = 'Maintain baseline SCADA monitoring and preserve current dispatch schedules.';
+  }
+
+  return { priorityResource, priorityNote, consequences, emergencyProtocol };
 }
 
 function composeRecommendations({ risk, water, electricity }) {
@@ -101,6 +163,12 @@ function composeRecommendations({ risk, water, electricity }) {
 
 function buildLocalDraft({ scenario, model, generatedAt }) {
   const risk = deriveRisk(model);
+  const intelligence = deriveOperationalIntelligence({
+    risk,
+    water: model.water,
+    electricity: model.electricity,
+  });
+
   return {
     risk,
     headline: HEADLINES[risk],
@@ -108,6 +176,7 @@ function buildLocalDraft({ scenario, model, generatedAt }) {
     water: model.water,
     electricity: model.electricity,
     controls: model.controls,
+    intelligence,
     generatedAt,
   };
 }
@@ -115,8 +184,10 @@ function buildLocalDraft({ scenario, model, generatedAt }) {
 function composeSummary(draft) {
   const controls = draft.controls;
   const opening = `${draft.scenario.name} (${draft.scenario.code}) is running at ${formatMetric(controls.demandPressure)}% demand pressure, ${formatMetric(controls.waterAvailability)}% water availability, and ${formatMetric(controls.gridCapacity)}% grid capacity.`;
+  const resources = `${describeResource(draft.water)} ${describeResource(draft.electricity)}`;
+  const intel = draft.intelligence;
 
-  return `${opening} ${describeResource(draft.water)} ${describeResource(draft.electricity)}`;
+  return `${opening} ${resources} ${intel.priorityNote} ${intel.consequences} ${intel.emergencyProtocol}`.trim();
 }
 
 function finalizeLocalAdvisory(draft) {
@@ -124,6 +195,9 @@ function finalizeLocalAdvisory(draft) {
     headline: draft.headline,
     summary: composeSummary(draft),
     risk: draft.risk,
+    priorityResource: draft.intelligence.priorityResource,
+    consequences: draft.intelligence.consequences,
+    emergencyProtocol: draft.intelligence.emergencyProtocol,
     recommendations: composeRecommendations(draft),
     provider: 'local',
     model: LOCAL_MODEL,
@@ -155,15 +229,35 @@ function cleanText(value, maxLength) {
 function buildSituationBrief(scenario, resourceModel, risk) {
   const water = resourceModel.water;
   const electricity = resourceModel.electricity;
+  const controls = resourceModel.controls;
 
   return [
-    `Scenario: ${scenario.name} (${scenario.code}) — ${scenario.description}`,
+    `Scenario: ${scenario.name} (ID: ${scenario.id}, Code: ${scenario.code})`,
+    `Scenario Description: ${scenario.description}`,
     `Operating window: ${scenario.window}`,
-    `Computed risk: ${risk}`,
-    `Controls: demand pressure ${formatMetric(resourceModel.controls.demandPressure)}%, water availability ${formatMetric(resourceModel.controls.waterAvailability)}%, grid capacity ${formatMetric(resourceModel.controls.gridCapacity)}%.`,
-    `Water: demand ${formatUnit(water.demand, water.unit)}, available ${formatUnit(water.available, water.unit)}, shortage ${formatUnit(water.shortage, water.unit)}, reserve ${formatUnit(water.reserve, water.unit)}, utilization ${formatMetric(water.utilization)}%, status ${water.status}.`,
-    `Electricity: demand ${formatUnit(electricity.demand, electricity.unit)}, available ${formatUnit(electricity.available, electricity.unit)}, shortage ${formatUnit(electricity.shortage, electricity.unit)}, reserve ${formatUnit(electricity.reserve, electricity.unit)}, utilization ${formatMetric(electricity.utilization)}%, status ${electricity.status}.`,
-    `Active shortage alerts: ${resourceModel.alerts.shortageCount}; unknown resources: ${resourceModel.alerts.unknownCount}.`,
+    `Precomputed Risk Level: ${risk}`,
+    `Control Inputs:`,
+    `- Demand pressure: ${formatMetric(controls.demandPressure)}%`,
+    `- Water availability: ${formatMetric(controls.waterAvailability)}%`,
+    `- Grid capacity: ${formatMetric(controls.gridCapacity)}%`,
+    `Water Resource Telemetry:`,
+    `- Total water demand: ${formatUnit(water.demand, water.unit)} (${formatMetric(water.demand)} ML/day)`,
+    `- Available water supply: ${formatUnit(water.available, water.unit)} (${formatMetric(water.available)} ML/day)`,
+    `- Water shortage: ${formatUnit(water.shortage, water.unit)} (${formatMetric(water.shortage)} ML/day)`,
+    `- Water reserve: ${formatUnit(water.reserve, water.unit)}`,
+    `- Water supply utilization: ${formatMetric(water.utilization)}%`,
+    `- Water status: ${water.status}`,
+    `Electricity Resource Telemetry:`,
+    `- Total electricity demand: ${formatUnit(electricity.demand, electricity.unit)} (${formatMetric(electricity.demand)} MW)`,
+    `- Available electricity capacity: ${formatUnit(electricity.available, electricity.unit)} (${formatMetric(electricity.available)} MW)`,
+    `- Electricity shortage: ${formatUnit(electricity.shortage, electricity.unit)} (${formatMetric(electricity.shortage)} MW)`,
+    `- Electricity reserve: ${formatUnit(electricity.reserve, electricity.unit)}`,
+    `- Electricity capacity utilization: ${formatMetric(electricity.utilization)}%`,
+    `- Electricity status: ${electricity.status}`,
+    `System Alerts & Telemetry:`,
+    `- Shortage alerts: ${resourceModel.alerts.shortageCount}`,
+    `- Unknown telemetry indicators: ${resourceModel.alerts.unknownCount}`,
+    `- Normal status: ${resourceModel.alerts.allNormal ? 'Yes' : 'No'}`,
   ].join('\n');
 }
 
@@ -177,8 +271,11 @@ function normalizeOpenAiAdvisory(raw, { fallback, modelName }) {
 
   return {
     headline: cleanText(raw?.headline, 160) ?? fallback.headline,
-    summary: cleanText(raw?.summary, 900) ?? fallback.summary,
+    summary: cleanText(raw?.summary, 1200) ?? fallback.summary,
     risk: fallback.risk,
+    priorityResource: cleanText(raw?.priorityResource, 40) ?? fallback.priorityResource,
+    consequences: cleanText(raw?.consequences, 400) ?? fallback.consequences,
+    emergencyProtocol: cleanText(raw?.emergencyProtocol, 400) ?? fallback.emergencyProtocol,
     recommendations:
       recommendations.length >= 2 ? recommendations : fallback.recommendations,
     provider: 'openai',
@@ -201,6 +298,7 @@ function normalizeOpenAiAdvisory(raw, { fallback, modelName }) {
  */
 export function createAdvisoryService({
   apiKey = null,
+  baseUrl = null,
   model = 'gpt-4o-mini',
   provider = 'auto',
   timeoutMs = 20_000,
@@ -221,6 +319,7 @@ export function createAdvisoryService({
       temperature: 0.2,
       maxRetries: 1,
       timeout: timeoutMs,
+      configuration: baseUrl ? { baseURL: baseUrl } : undefined,
     });
 
     openAiChain = RunnableSequence.from([
@@ -233,6 +332,7 @@ export function createAdvisoryService({
   return {
     provider: useOpenAi ? 'openai' : 'local',
     model: useOpenAi ? model : LOCAL_MODEL,
+    apiKeyConfigured: Boolean(apiKey),
 
     async generate({ scenario, model: resourceModel }) {
       const generatedAt = new Date().toISOString();
@@ -257,7 +357,8 @@ export function createAdvisoryService({
           fallback,
           modelName: model,
         });
-      } catch {
+      } catch (error) {
+        console.warn('LangChain OpenAI invocation fallback:', error?.message ?? error);
         return {
           ...fallback,
           fallback: true,

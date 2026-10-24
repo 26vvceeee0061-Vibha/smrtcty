@@ -321,12 +321,33 @@ export function createApiHandler({
         return true;
       }
 
-      if (pathname === '/api/advisory') {
-        requireMethod(request, 'POST');
-        assertJsonContentType(request);
+      if (pathname === '/api/ai-brief' || pathname === '/api/advisory') {
+        if (pathname === '/api/advisory' || request.method !== 'GET') {
+          requireMethod(request, 'POST');
+          assertJsonContentType(request);
+        }
 
-        const body = await readJsonBody(request);
-        const { scenario, controls } = requireBodyScenario(body);
+        let scenario;
+        let controls;
+
+        if (request.method === 'GET') {
+          const scenarioId = searchParams.get('scenarioId') ?? searchParams.get('scenario');
+          if (!scenarioId) {
+            throw new ApiError(400, 'scenarioId query parameter is required.', 'invalid_scenario');
+          }
+          scenario = parseScenario(scenarioId);
+          controls = parseControls({
+            demandPressure: searchParams.get('demandPressure'),
+            waterAvailability: searchParams.get('waterAvailability'),
+            gridCapacity: searchParams.get('gridCapacity'),
+          });
+        } else {
+          const body = await readJsonBody(request);
+          const parsed = requireBodyScenario(body);
+          scenario = parsed.scenario;
+          controls = parsed.controls;
+        }
+
         const resourceModel = deriveDashboardModel(scenario, controls);
         const advisory = await advisoryService.generate({
           scenario,

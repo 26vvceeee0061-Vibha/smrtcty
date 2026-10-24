@@ -52,12 +52,12 @@ export function loadConfig(overrides = {}) {
 
   const defaultDataDir = resolve(
     ROOT,
-    readString(process.env.PGLITE_DATA_DIR, '.data/pglite'),
+    readString(process.env.PGLITE_DATA_DIR, process.env.VERCEL ? '/tmp/pglite' : '.data/pglite'),
   );
   const pgliteDataDir =
     overrides.pgliteDataDir !== undefined
       ? overrides.pgliteDataDir
-      : defaultDataDir;
+      : (process.env.VERCEL && !process.env.PGLITE_DATA_DIR ? null : defaultDataDir);
 
   const advisoryProviderSetting = (
     overrides.advisoryProvider ??
@@ -80,6 +80,10 @@ export function loadConfig(overrides = {}) {
       overrides.openaiApiKey !== undefined
         ? readString(overrides.openaiApiKey)
         : readString(process.env.OPENAI_API_KEY),
+    openaiBaseUrl:
+      overrides.openaiBaseUrl !== undefined
+        ? readString(overrides.openaiBaseUrl)
+        : readString(process.env.OPENAI_BASE_URL ?? process.env.OPENAI_API_BASE),
     openaiModel:
       overrides.openaiModel ??
       readString(process.env.OPENAI_MODEL, 'gpt-4o-mini'),

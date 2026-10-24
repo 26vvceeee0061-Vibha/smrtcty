@@ -60,14 +60,15 @@ supply, or shortage values are ignored.
 | Method | Route | Description |
 | --- | --- | --- |
 | `GET` | `/api/health` | Service, LangChain provider, database driver, and snapshot count. |
-| `POST` | `/api/advisory` | Generate an operations brief for `{ scenarioId, controls }`. |
+| `POST` / `GET` | `/api/ai-brief` | Generate an intelligent LangChain operations brief for `{ scenarioId, controls }`. |
+| `POST` | `/api/advisory` | Alias for generating operations brief (preserves backward compatibility). |
 | `POST` | `/api/snapshots` | Recompute and persist `{ scenarioId, controls, label? }` plus its advisory. |
 | `GET` | `/api/snapshots?limit=6` | List recent snapshots (newest first, max 50). |
 
 Example:
 
 ```bash
-curl -X POST http://127.0.0.1:4173/api/advisory \
+curl -X POST http://127.0.0.1:4173/api/ai-brief \
   -H "Content-Type: application/json" \
   -d '{"scenarioId":"summer-surge","controls":{"demandPressure":120}}'
 ```

@@ -66,6 +66,26 @@ test('advisory endpoint ignores client metrics and computes authoritative values
   assert.match(body.advisory.summary, /166.4 ML\/day/);
 });
 
+test('ai-brief endpoint processes requests and delivers agentic intelligence', async () => {
+  const { response, body } = await postJson('/api/ai-brief', {
+    scenarioId: 'summer-surge',
+    controls: {
+      demandPressure: 100,
+      waterAvailability: 100,
+      gridCapacity: 100,
+    },
+  });
+
+  assert.equal(response.status, 200);
+  assert.equal(body.context.scenario.id, 'summer-surge');
+  assert.equal(body.context.water.shortage, 64);
+  assert.equal(body.advisory.risk, 'elevated');
+  assert.equal(body.advisory.priorityResource, 'water');
+  assert.ok(body.advisory.consequences.length > 0);
+  assert.ok(body.advisory.emergencyProtocol.length > 0);
+  assert.equal(body.advisory.recommendations.length, 3);
+});
+
 test('advisory endpoint validates scenario, controls, and content type', async () => {
   const unknownScenario = await postJson('/api/advisory', {
     scenarioId: 'not-a-scenario',

@@ -159,6 +159,7 @@ export async function createRuntime(overrides = {}) {
   try {
     const advisoryService = createAdvisoryService({
       apiKey: config.openaiApiKey,
+      baseUrl: config.openaiBaseUrl,
       model: config.openaiModel,
       provider: config.advisoryProvider,
       timeoutMs: config.openaiTimeoutMs,
@@ -295,3 +296,21 @@ if (isDirectRun) {
       process.exitCode = 1;
     });
 }
+
+let serverlessAppPromise = null;
+
+async function getServerlessApp() {
+  if (!serverlessAppPromise) {
+    serverlessAppPromise = (async () => {
+      const runtime = await createRuntime();
+      return createAppServer(runtime);
+    })();
+  }
+  return serverlessAppPromise;
+}
+
+export default async function handler(req, res) {
+  const app = await getServerlessApp();
+  app.emit('request', req, res);
+}
+

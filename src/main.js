@@ -589,7 +589,7 @@ async function runAdvisoryRequest(requestId, requestState) {
   advisoryController = controller;
 
   try {
-    const response = await fetch('/api/advisory', {
+    let response = await fetch('/api/ai-brief', {
       method: 'POST',
       headers: {
         Accept: 'application/json',
@@ -597,7 +597,19 @@ async function runAdvisoryRequest(requestId, requestState) {
       },
       body: JSON.stringify(requestState),
       signal: controller.signal,
-    });
+    }).catch(() => null);
+
+    if (!response || !response.ok) {
+      response = await fetch('/api/advisory', {
+        method: 'POST',
+        headers: {
+          Accept: 'application/json',
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify(requestState),
+        signal: controller.signal,
+      });
+    }
 
     if (!response.ok) {
       throw new Error(`Advisory request failed with status ${response.status}.`);
