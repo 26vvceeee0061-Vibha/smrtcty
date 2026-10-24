@@ -1,0 +1,26 @@
+# Optional PostgreSQL service for running Quantum Flux against a real database.
+#
+#   docker compose up -d postgres
+#   $env:DATABASE_URL = "postgres://quantum:quantum@127.0.0.1:5432/quantum_flux"
+#   npm start
+#
+# The server creates the resource_snapshots table and index automatically.
+services:
+  postgres:
+    image: postgres:16-alpine
+    environment:
+      POSTGRES_DB: quantum_flux
+      POSTGRES_USER: quantum
+      POSTGRES_PASSWORD: quantum
+    ports:
+      - "5432:5432"
+    volumes:
+      - quantum_flux_pgdata:/var/lib/postgresql/data
+    healthcheck:
+      test: ["CMD-SHELL", "pg_isready -U quantum -d quantum_flux"]
+      interval: 5s
+      timeout: 5s
+      retries: 10
+
+volumes:
+  quantum_flux_pgdata:

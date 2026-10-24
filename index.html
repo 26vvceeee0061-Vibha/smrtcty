@@ -1,0 +1,605 @@
+<!doctype html>
+<html lang="en">
+  <head>
+    <meta charset="UTF-8" />
+    <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+    <meta name="theme-color" content="#050b16" />
+    <link rel="icon" href="./favicon.svg" type="image/svg+xml" />
+    <meta
+      name="description"
+      content="Quantum Flux — a scenario-driven Smart City AI command center for water and electricity demand intelligence."
+    />
+    <title>Quantum Flux — Smart City AI Command Center</title>
+    <link rel="stylesheet" href="./src/styles.css" />
+    <script type="module" src="./src/main.js"></script>
+  </head>
+  <body>
+    <div class="ambient-grid" aria-hidden="true"></div>
+
+    <div class="app-shell" id="top">
+      <aside class="sidebar">
+        <a class="brand" href="#top" aria-label="Quantum Flux command center home">
+          <span class="brand__mark" aria-hidden="true">
+            <svg viewBox="0 0 48 48" fill="none">
+              <path d="M24 3.5 41.7 13.8v20.4L24 44.5 6.3 34.2V13.8L24 3.5Z" stroke="currentColor" stroke-width="1.4" opacity=".55" />
+              <path d="M24 11.5 34.9 17.8v12.4L24 36.5l-10.9-6.3V17.8L24 11.5Z" stroke="currentColor" stroke-width="1.2" opacity=".9" />
+              <circle cx="24" cy="24" r="4.3" fill="currentColor" />
+              <path d="M24 4v7M24 37v7M6.4 14l6.1 3.5M35.5 30.5l6.1 3.5M41.6 14l-6.1 3.5M12.5 30.5 6.4 34" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" opacity=".7" />
+            </svg>
+          </span>
+          <span class="brand__text">
+            <span class="brand__name">QUANTUM <em>FLUX</em></span>
+            <span class="brand__sub">SMART CITY OS</span>
+          </span>
+        </a>
+
+        <div class="core-status">
+          <span class="status-dot" aria-hidden="true"></span>
+          <span>AI core online</span>
+          <span class="core-status__version">v4.2</span>
+        </div>
+
+        <nav class="side-nav" aria-label="Command center sections">
+          <p class="side-nav__label">COMMAND</p>
+          <a class="side-nav__item is-active" href="#overview" aria-current="page">
+            <span class="side-nav__icon" aria-hidden="true">
+              <svg viewBox="0 0 20 20" fill="none">
+                <rect x="2.5" y="2.5" width="6" height="6" rx="1.2" stroke="currentColor" stroke-width="1.4" />
+                <rect x="11.5" y="2.5" width="6" height="6" rx="1.2" stroke="currentColor" stroke-width="1.4" />
+                <rect x="2.5" y="11.5" width="6" height="6" rx="1.2" stroke="currentColor" stroke-width="1.4" />
+                <rect x="11.5" y="11.5" width="6" height="6" rx="1.2" stroke="currentColor" stroke-width="1.4" />
+              </svg>
+            </span>
+            <span>Overview</span>
+          </a>
+          <a class="side-nav__item" href="#water-card">
+            <span class="side-nav__icon" aria-hidden="true">
+              <svg viewBox="0 0 20 20" fill="none">
+                <path d="M10 2.6s5.4 5.8 5.4 9.6a5.4 5.4 0 0 1-10.8 0C4.6 8.4 10 2.6 10 2.6Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" />
+                <path d="M7.7 12.2c.2 1.2 1.1 2.1 2.4 2.2" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" />
+              </svg>
+            </span>
+            <span>Water network</span>
+          </a>
+          <a class="side-nav__item" href="#power-card">
+            <span class="side-nav__icon" aria-hidden="true">
+              <svg viewBox="0 0 20 20" fill="none">
+                <path d="m11.3 2.5-6.8 9h4.6l-.5 6 6.9-9.2h-4.6l.4-5.8Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" />
+              </svg>
+            </span>
+            <span>Power grid</span>
+          </a>
+          <a class="side-nav__item" href="#resource-alerts">
+            <span class="side-nav__icon" aria-hidden="true">
+              <svg viewBox="0 0 20 20" fill="none">
+                <path d="M10 3.1 17 15.5H3L10 3.1Z" stroke="currentColor" stroke-width="1.4" stroke-linejoin="round" />
+                <path d="M10 7.4v3.8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
+                <circle cx="10" cy="13.6" r=".9" fill="currentColor" />
+              </svg>
+            </span>
+            <span>Shortage alerts</span>
+            <span class="nav-badge" id="nav-alert-count" hidden>0</span>
+          </a>
+          <a class="side-nav__item" href="#operations-brief">
+            <span class="side-nav__icon" aria-hidden="true">
+              <svg viewBox="0 0 20 20" fill="none">
+                <path d="M10 2.6v2.2M10 15.2v2.2M2.6 10h2.2M15.2 10h2.2M4.8 4.8l1.5 1.5M13.7 13.7l1.5 1.5M15.2 4.8l-1.5 1.5M6.3 13.7l-1.5 1.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" />
+                <circle cx="10" cy="10" r="2.7" stroke="currentColor" stroke-width="1.4" />
+              </svg>
+            </span>
+            <span>AI brief</span>
+          </a>
+          <a class="side-nav__item" href="#snapshot-ledger">
+            <span class="side-nav__icon" aria-hidden="true">
+              <svg viewBox="0 0 20 20" fill="none">
+                <ellipse cx="10" cy="4.8" rx="5.8" ry="2.4" stroke="currentColor" stroke-width="1.4" />
+                <path d="M4.2 4.8v5c0 1.3 2.6 2.4 5.8 2.4s5.8-1.1 5.8-2.4v-5" stroke="currentColor" stroke-width="1.4" />
+                <path d="M4.2 9.8v5c0 1.3 2.6 2.4 5.8 2.4s5.8-1.1 5.8-2.4v-5" stroke="currentColor" stroke-width="1.4" />
+              </svg>
+            </span>
+            <span>Snapshot ledger</span>
+          </a>
+        </nav>
+
+        <div class="sidebar__spacer"></div>
+
+        <div class="side-telemetry">
+          <p class="side-telemetry__label">MODEL TELEMETRY</p>
+          <div class="telemetry-row">
+            <span>Data source</span>
+            <strong>Scenario engine</strong>
+          </div>
+          <div class="telemetry-row">
+            <span>Evaluation</span>
+            <strong class="is-live">Continuous</strong>
+          </div>
+          <div class="telemetry-row">
+            <span>AI advisory</span>
+            <strong id="telemetry-ai">LangChain</strong>
+          </div>
+          <div class="telemetry-row">
+            <span>Snapshot store</span>
+            <strong id="telemetry-db">Connecting…</strong>
+          </div>
+          <div class="telemetry-signal" aria-hidden="true">
+            <span></span><span></span><span></span><span></span><span></span><span></span><span></span><span></span>
+          </div>
+        </div>
+
+        <div class="sidebar__footer">
+          <span class="sidebar__footer-mark" aria-hidden="true">QF</span>
+          <span>Chronoforge<br /><strong>Urban Intelligence</strong></span>
+        </div>
+      </aside>
+
+      <main class="main-content">
+        <header class="topbar">
+          <div class="breadcrumb">
+            <span>CHRONOFORGE</span>
+            <span class="breadcrumb__slash">/</span>
+            <strong>URBAN OPERATIONS</strong>
+          </div>
+          <div class="topbar__right">
+            <span class="system-chip">
+              <span class="status-dot" aria-hidden="true"></span>
+              SCENARIO ENGINE LINKED
+            </span>
+            <span class="topbar__divider" aria-hidden="true"></span>
+            <span class="topbar__time" id="live-clock">--:--</span>
+          </div>
+        </header>
+
+        <section class="hero" id="overview" aria-labelledby="page-title">
+          <div class="hero__content">
+            <p class="eyebrow">
+              <span class="eyebrow__line" aria-hidden="true"></span>
+              LIVE RESOURCE INTELLIGENCE
+            </p>
+            <h1 id="page-title">Smart City <span>AI Command Center</span></h1>
+            <p class="hero__summary">
+              One operational view of water and power demand, available supply, and the shortfalls that need attention now.
+            </p>
+            <div class="hero__meta">
+              <span class="meta-chip">MODE <strong>SCENARIO SIMULATION</strong></span>
+              <span class="meta-chip">CITY NODE <strong>NOVA DISTRICT</strong></span>
+            </div>
+          </div>
+
+          <div class="scenario-card">
+            <div class="scenario-card__head">
+              <span class="eyebrow">ACTIVE SCENARIO</span>
+              <span class="scenario-code" id="scenario-code">SCN-01</span>
+            </div>
+            <label class="sr-only" for="scenario-select">Select an active scenario</label>
+            <div class="select-shell">
+              <select id="scenario-select"></select>
+              <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <path d="m4 6 4 4 4-4" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </div>
+            <p class="scenario-card__description" id="scenario-description">
+              Loading scenario data…
+            </p>
+            <div class="scenario-card__meta">
+              <span class="scenario-window">
+                <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                  <circle cx="8" cy="8" r="5.8" stroke="currentColor" stroke-width="1.3" />
+                  <path d="M8 4.7V8l2.2 1.5" stroke="currentColor" stroke-width="1.3" stroke-linecap="round" />
+                </svg>
+                <span id="scenario-window">--:--</span>
+              </span>
+              <span class="live-indicator"><i aria-hidden="true"></i> LIVE MODEL</span>
+            </div>
+          </div>
+        </section>
+
+        <section class="controls-panel" aria-labelledby="controls-title">
+          <div class="controls-panel__head">
+            <div>
+              <p class="eyebrow">SIMULATION INPUTS</p>
+              <h2 id="controls-title">Scenario Variables</h2>
+            </div>
+            <button class="ghost-button" type="button" id="reset-controls">
+              <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                <path d="M3.1 6.4A5.1 5.1 0 1 1 3.4 10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
+                <path d="M2.7 2.9v3.8h3.8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+              Reset inputs
+            </button>
+          </div>
+
+          <div class="controls-grid">
+            <div class="control">
+              <div class="control__head">
+                <label for="demand-pressure">Demand pressure</label>
+                <output for="demand-pressure" id="demand-pressure-value">100%</output>
+              </div>
+              <input
+                type="range"
+                id="demand-pressure"
+                name="demand-pressure"
+                min="80"
+                max="120"
+                step="1"
+                value="100"
+                data-control-key="demandPressure"
+                aria-describedby="demand-pressure-hint"
+              />
+              <div class="control__hint" id="demand-pressure-hint">
+                <span>80%</span>
+                <span>Applies to water &amp; power</span>
+                <span>120%</span>
+              </div>
+            </div>
+
+            <div class="control control--water">
+              <div class="control__head">
+                <label for="water-availability">Water availability</label>
+                <output for="water-availability" id="water-availability-value">100%</output>
+              </div>
+              <input
+                type="range"
+                id="water-availability"
+                name="water-availability"
+                min="70"
+                max="120"
+                step="1"
+                value="100"
+                data-control-key="waterAvailability"
+                aria-describedby="water-availability-hint"
+              />
+              <div class="control__hint" id="water-availability-hint">
+                <span>70%</span>
+                <span>Reservoir &amp; network yield</span>
+                <span>120%</span>
+              </div>
+            </div>
+
+            <div class="control control--power">
+              <div class="control__head">
+                <label for="grid-capacity">Grid capacity</label>
+                <output for="grid-capacity" id="grid-capacity-value">100%</output>
+              </div>
+              <input
+                type="range"
+                id="grid-capacity"
+                name="grid-capacity"
+                min="70"
+                max="120"
+                step="1"
+                value="100"
+                data-control-key="gridCapacity"
+                aria-describedby="grid-capacity-hint"
+              />
+              <div class="control__hint" id="grid-capacity-hint">
+                <span>70%</span>
+                <span>Available generation</span>
+                <span>120%</span>
+              </div>
+            </div>
+          </div>
+        </section>
+
+        <div class="section-heading">
+          <div>
+            <p class="eyebrow">RESOURCE BALANCE</p>
+            <h2>Demand vs available</h2>
+          </div>
+          <span class="section-heading__note">
+            <span class="status-dot" aria-hidden="true"></span>
+            Recalculates instantly
+          </span>
+        </div>
+
+        <section class="resource-grid" aria-label="Resource demand and availability">
+          <article class="panel resource-card resource-card--water" id="water-card" data-testid="water-card" aria-labelledby="water-card-title">
+            <div class="resource-card__accent" aria-hidden="true"></div>
+            <header class="resource-card__header">
+              <div class="resource-card__identity">
+                <span class="icon-tile icon-tile--water" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none">
+                    <path d="M12 2.8s6.8 7.2 6.8 12a6.8 6.8 0 0 1-13.6 0c0-4.8 6.8-12 6.8-12Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" />
+                    <path d="M8.8 14.9c.3 1.6 1.5 2.7 3.1 2.9" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
+                  </svg>
+                </span>
+                <div>
+                  <p class="panel__eyebrow">WATER NETWORK</p>
+                  <h2 id="water-card-title">Water Demand vs Available Water</h2>
+                </div>
+              </div>
+              <span class="status-pill status-pill--critical" id="water-status-pill">
+                <span class="status-pill__icon" aria-hidden="true"></span>
+                <span id="water-status-text">Evaluating</span>
+              </span>
+            </header>
+
+            <div class="resource-card__readouts">
+              <div class="readout">
+                <span class="readout__label">Total water demand</span>
+                <span class="readout__value">
+                  <strong id="water-demand-value">—</strong>
+                  <small>ML/day</small>
+                </span>
+              </div>
+              <div class="readout">
+                <span class="readout__label">Total available water</span>
+                <span class="readout__value">
+                  <strong id="water-available-value">—</strong>
+                  <small>ML/day</small>
+                </span>
+              </div>
+            </div>
+
+            <div class="bar-chart" aria-label="Water demand compared with available water">
+              <div class="bar-row">
+                <div class="bar-row__head">
+                  <span class="bar-label"><i class="legend-dot legend-dot--water" aria-hidden="true"></i>Demand</span>
+                  <span class="bar-row__amount"><strong id="water-demand-bar-value">—</strong> ML/day</span>
+                </div>
+                <div class="bar-track" id="water-demand-track" role="progressbar" aria-label="Water demand" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0">
+                  <span class="bar-fill bar-fill--demand" id="water-demand-bar"></span>
+                </div>
+              </div>
+              <div class="bar-row">
+                <div class="bar-row__head">
+                  <span class="bar-label"><i class="legend-dot legend-dot--supply" aria-hidden="true"></i>Available</span>
+                  <span class="bar-row__amount"><strong id="water-available-bar-value">—</strong> ML/day</span>
+                </div>
+                <div class="bar-track" id="water-available-track" role="progressbar" aria-label="Available water" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0">
+                  <span class="bar-fill bar-fill--supply" id="water-available-bar"></span>
+                </div>
+              </div>
+            </div>
+
+            <div class="resource-card__verdict" id="water-verdict" role="status" aria-live="polite"></div>
+
+            <footer class="resource-card__footer">
+              <span><span class="footer-key">Supply utilization</span> <strong id="water-utilization">—</strong></span>
+              <span><span class="footer-key">Demand met</span> <strong id="water-demand-met">—</strong></span>
+            </footer>
+          </article>
+
+          <article class="panel resource-card resource-card--power" id="power-card" data-testid="electricity-card" aria-labelledby="power-card-title">
+            <div class="resource-card__accent" aria-hidden="true"></div>
+            <header class="resource-card__header">
+              <div class="resource-card__identity">
+                <span class="icon-tile icon-tile--power" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none">
+                    <path d="m13.7 2.5-8.9 11.9h6.1l-.7 7.1 8.9-12.1h-6.1l.7-6.9Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" />
+                  </svg>
+                </span>
+                <div>
+                  <p class="panel__eyebrow">POWER GRID</p>
+                  <h2 id="power-card-title">Electricity Demand vs Available Capacity</h2>
+                </div>
+              </div>
+              <span class="status-pill status-pill--normal" id="electricity-status-pill">
+                <span class="status-pill__icon" aria-hidden="true"></span>
+                <span id="electricity-status-text">Evaluating</span>
+              </span>
+            </header>
+
+            <div class="resource-card__readouts">
+              <div class="readout">
+                <span class="readout__label">Total electricity demand</span>
+                <span class="readout__value">
+                  <strong id="electricity-demand-value">—</strong>
+                  <small>MW</small>
+                </span>
+              </div>
+              <div class="readout">
+                <span class="readout__label">Available capacity</span>
+                <span class="readout__value">
+                  <strong id="electricity-available-value">—</strong>
+                  <small>MW</small>
+                </span>
+              </div>
+            </div>
+
+            <div class="bar-chart" aria-label="Electricity demand compared with available capacity">
+              <div class="bar-row">
+                <div class="bar-row__head">
+                  <span class="bar-label"><i class="legend-dot legend-dot--power" aria-hidden="true"></i>Demand</span>
+                  <span class="bar-row__amount"><strong id="electricity-demand-bar-value">—</strong> MW</span>
+                </div>
+                <div class="bar-track" id="electricity-demand-track" role="progressbar" aria-label="Electricity demand" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0">
+                  <span class="bar-fill bar-fill--demand" id="electricity-demand-bar"></span>
+                </div>
+              </div>
+              <div class="bar-row">
+                <div class="bar-row__head">
+                  <span class="bar-label"><i class="legend-dot legend-dot--supply" aria-hidden="true"></i>Available</span>
+                  <span class="bar-row__amount"><strong id="electricity-available-bar-value">—</strong> MW</span>
+                </div>
+                <div class="bar-track" id="electricity-available-track" role="progressbar" aria-label="Available capacity" aria-valuemin="0" aria-valuemax="0" aria-valuenow="0">
+                  <span class="bar-fill bar-fill--supply" id="electricity-available-bar"></span>
+                </div>
+              </div>
+            </div>
+
+            <div class="resource-card__verdict" id="electricity-verdict" role="status" aria-live="polite"></div>
+
+            <footer class="resource-card__footer">
+              <span><span class="footer-key">Supply utilization</span> <strong id="electricity-utilization">—</strong></span>
+              <span><span class="footer-key">Demand met</span> <strong id="electricity-demand-met">—</strong></span>
+            </footer>
+          </article>
+        </section>
+
+        <section class="panel alerts-panel" id="resource-alerts" data-testid="resource-shortage-alerts" aria-labelledby="alerts-title">
+          <header class="alerts-panel__head">
+            <div class="alerts-panel__identity">
+              <span class="icon-tile icon-tile--alert" aria-hidden="true">
+                <svg viewBox="0 0 24 24" fill="none">
+                  <path d="M12 3 21 19.1H3L12 3Z" stroke="currentColor" stroke-width="1.5" stroke-linejoin="round" />
+                  <path d="M12 8.5v4.8" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                  <circle cx="12" cy="16.4" r="1" fill="currentColor" />
+                </svg>
+              </span>
+              <div>
+                <p class="panel__eyebrow">RESOURCE MONITOR / AUTO-EVALUATED</p>
+                <h2 id="alerts-title">Resource Shortage Alerts</h2>
+                <p class="alerts-panel__description">
+                  Water and electricity are evaluated against the same live scenario data used in the comparison cards.
+                </p>
+              </div>
+            </div>
+            <span class="status-pill status-pill--critical alerts-panel__summary" id="alerts-summary">
+              <span class="status-pill__icon" aria-hidden="true"></span>
+              <span id="alerts-summary-text">Evaluating</span>
+            </span>
+          </header>
+
+          <div class="all-clear" id="all-clear-banner" role="status" hidden>
+            <span class="all-clear__icon" aria-hidden="true">
+              <svg viewBox="0 0 24 24" fill="none">
+                <path d="m5.5 12.5 4.2 4.2 8.8-9.4" stroke="currentColor" stroke-width="1.8" stroke-linecap="round" stroke-linejoin="round" />
+              </svg>
+            </span>
+            <div>
+              <strong>All resources are sufficient. No shortages detected.</strong>
+              <span>Water and electricity are both operating within available supply.</span>
+            </div>
+          </div>
+
+          <div class="alerts-list" id="alerts-list" aria-live="polite" aria-atomic="true"></div>
+        </section>
+
+        <div class="section-heading" id="intelligence-layer">
+          <div>
+            <p class="eyebrow">INTELLIGENCE LAYER</p>
+            <h2>AI advisory &amp; persistence</h2>
+          </div>
+          <span class="section-heading__note">
+            <span class="status-dot" aria-hidden="true"></span>
+            Server-verified outputs
+          </span>
+        </div>
+
+        <section class="intel-grid" aria-label="AI advisory and snapshot ledger">
+          <article class="panel intel-panel" id="operations-brief" data-testid="operations-brief" aria-labelledby="brief-title">
+            <header class="intel-panel__head">
+              <div class="intel-panel__identity">
+                <span class="icon-tile icon-tile--ai" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none">
+                    <path d="M12 3v3.4M12 17.6V21M3 12h3.4M17.6 12H21M5.6 5.6l2.4 2.4M16 16l2.4 2.4M18.4 5.6 16 8M8 16l-2.4 2.4" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
+                    <circle cx="12" cy="12" r="3.1" stroke="currentColor" stroke-width="1.4" />
+                  </svg>
+                </span>
+                <div>
+                  <p class="panel__eyebrow">LANGCHAIN / SERVER-DERIVED</p>
+                  <h2 id="brief-title">AI Operations Brief</h2>
+                  <p class="alerts-panel__description">
+                    A live operations brief generated from the server's resource model, with prioritized actions for the active scenario.
+                  </p>
+                </div>
+              </div>
+              <div class="intel-panel__actions">
+                <span class="status-pill status-pill--warning" id="brief-provider-pill">
+                  <span class="status-pill__icon" aria-hidden="true"></span>
+                  <span id="brief-provider">Connecting</span>
+                </span>
+                <button class="icon-button" type="button" id="brief-refresh" aria-label="Refresh AI operations brief" title="Refresh brief">
+                  <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                    <path d="M3.1 6.4A5.1 5.1 0 1 1 3.4 10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
+                    <path d="M2.7 2.9v3.8h3.8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                </button>
+              </div>
+            </header>
+
+            <div class="brief-body">
+              <div class="brief-verdict">
+                <span class="risk-badge risk-badge--guarded" id="brief-risk">Evaluating</span>
+                <h3 class="brief-headline" id="brief-headline">Generating the operations brief…</h3>
+                <p class="brief-summary" id="brief-summary">
+                  The LangChain advisory chain is reviewing the active scenario and server-computed resource balances.
+                </p>
+              </div>
+              <ul class="brief-recommendations" id="brief-recommendations" aria-label="Recommended actions">
+                <li>Waiting for the advisory chain to respond.</li>
+              </ul>
+            </div>
+
+            <p class="intel-status is-loading" id="brief-status" role="status" aria-live="polite">
+              Connecting to the advisory service…
+            </p>
+
+            <footer class="intel-panel__footer">
+              <span>Chain <strong id="brief-model">LangChain</strong></span>
+              <span id="brief-updated">—</span>
+            </footer>
+          </article>
+
+          <article class="panel intel-panel" id="snapshot-ledger" data-testid="snapshot-ledger" aria-labelledby="ledger-title">
+            <header class="intel-panel__head">
+              <div class="intel-panel__identity">
+                <span class="icon-tile icon-tile--db" aria-hidden="true">
+                  <svg viewBox="0 0 24 24" fill="none">
+                    <ellipse cx="12" cy="5.6" rx="7" ry="2.9" stroke="currentColor" stroke-width="1.5" />
+                    <path d="M5 5.6v6.1c0 1.6 3.1 2.9 7 2.9s7-1.3 7-2.9V5.6" stroke="currentColor" stroke-width="1.5" />
+                    <path d="M5 11.7v6.1c0 1.6 3.1 2.9 7 2.9s7-1.3 7-2.9v-6.1" stroke="currentColor" stroke-width="1.5" />
+                  </svg>
+                </span>
+                <div>
+                  <p class="panel__eyebrow">POSTGRESQL / SNAPSHOT LEDGER</p>
+                  <h2 id="ledger-title">Scenario Snapshot Ledger</h2>
+                  <p class="alerts-panel__description">
+                    Persist the active operating point and its advisory. Snapshots are recomputed on the server before they are written.
+                  </p>
+                </div>
+              </div>
+              <div class="intel-panel__actions">
+                <span class="status-pill status-pill--warning" id="ledger-driver-pill">
+                  <span class="status-pill__icon" aria-hidden="true"></span>
+                  <span id="ledger-driver">Connecting</span>
+                </span>
+                <button class="icon-button" type="button" id="ledger-refresh" aria-label="Refresh snapshot ledger" title="Refresh ledger">
+                  <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                    <path d="M3.1 6.4A5.1 5.1 0 1 1 3.4 10" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" />
+                    <path d="M2.7 2.9v3.8h3.8" stroke="currentColor" stroke-width="1.4" stroke-linecap="round" stroke-linejoin="round" />
+                  </svg>
+                </button>
+              </div>
+            </header>
+
+            <form class="ledger-form" id="snapshot-form">
+              <label class="sr-only" for="snapshot-label">Snapshot note</label>
+              <input
+                id="snapshot-label"
+                name="label"
+                type="text"
+                maxlength="120"
+                placeholder="Snapshot note (optional)"
+                autocomplete="off"
+              />
+              <button class="primary-button" type="submit" id="snapshot-save">
+                <svg viewBox="0 0 16 16" fill="none" aria-hidden="true">
+                  <path d="M8 2.4v7.2M4.9 6.6 8 9.7l3.1-3.1" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" stroke-linejoin="round" />
+                  <path d="M2.8 11.5v1.2a.9.9 0 0 0 .9.9h8.6a.9.9 0 0 0 .9-.9v-1.2" stroke="currentColor" stroke-width="1.5" stroke-linecap="round" />
+                </svg>
+                Save snapshot
+              </button>
+            </form>
+
+            <p class="intel-status is-loading" id="ledger-status" role="status" aria-live="polite">
+              Loading recent snapshots…
+            </p>
+
+            <ol class="ledger-list" id="ledger-list" aria-label="Recent scenario snapshots"></ol>
+
+            <footer class="intel-panel__footer">
+              <span>Store <strong id="ledger-store">—</strong></span>
+              <span id="ledger-count">0 snapshots</span>
+            </footer>
+          </article>
+        </section>
+
+        <footer class="app-footer">
+          <span>QUANTUM FLUX <i aria-hidden="true"></i> Smart City AI Command Center</span>
+          <span>Scenario model v4.2 · All figures recalculate from the active scenario</span>
+        </footer>
+      </main>
+    </div>
+  </body>
+</html>
