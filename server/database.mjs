@@ -167,25 +167,23 @@ export async function createSnapshotStore({ databaseUrl = null, dataDir = null }
   let pglite = null;
   let closed = false;
   let closing = null;
-
-  if (databaseUrl) {
-    pool = new Pool({
-      connectionString: databaseUrl,
-      max: 4,
-      idleTimeoutMillis: 30_000,
-      connectionTimeoutMillis: 10_000,
-    });
-  } else {
-    if (dataDir) await mkdir(dataDir, { recursive: true });
-    pglite = dataDir ? new PGlite(dataDir) : new PGlite();
-  }
-
-  async function query(text, params = []) {
-    if (pool) return pool.query(text, params);
-    return pglite.query(text, params);
-  }
+  let inMemoryStore = false;
+  const memorySnapshots = [];
+  let nextSnapshotId = 1;
 
   try {
+    if (databaseUrl) {
+      pool = new Pool({
+        connectionString: databaseUrl,
+        max: 4,
+        idleTimeoutMillis: 30_000,
+        connectionTimeoutMillis: 10_000,
+      });
+    } else {
+      if (dataDir) await mkdir(dataDir, { recursive: true });
+      pglite = dataDir ? new PGlite(dataDir) : new PGlite();
+    }
+
     let schemaSql;
     try {
       schemaSql = await readFile(SCHEMA_URL, 'utf8');
@@ -199,15 +197,62 @@ export async function createSnapshotStore({ databaseUrl = null, dataDir = null }
       await pglite.exec(schemaSql);
     }
   } catch (error) {
-    if (pool) await pool.end().catch(() => {});
-    else if (pglite) await pglite.close().catch(() => {});
-    throw error;
+    if (pool) {
+      await pool.end().catch(() => {});
+      throw error;
+    }
+    console.warn('PGlite initialization failed; using in-memory snapshot store:', error?.message ?? error);
+    inMemoryStore = true;
+  }
+
+  async function query(text, params = []) {
+    if (pool) return pool.query(text, params);
+    return pglite.query(text, params);
   }
 
   return {
-    driver,
+    driver: inMemoryStore ? 'memory' : driver,
 
     async save({ label = null, scenario, controls, resourceModel, advisory }) {
+      if (inMemoryStore) {
+        const item = {
+          id: String(nextSnapshotId++),
+          label: label ?? null,
+          createdAt: new Date().toISOString(),
+          scenario: { id: scenario.id, code: scenario.code, name: scenario.name },
+          controls: {
+            demandPressure: controls.demandPressure,
+            waterAvailability: controls.waterAvailability,
+            gridCapacity: controls.gridCapacity,
+          },
+          water: {
+            demand: resourceModel.water.demand,
+            available: resourceModel.water.available,
+            shortage: resourceModel.water.shortage,
+            status: resourceModel.water.status,
+          },
+          electricity: {
+            demand: resourceModel.electricity.demand,
+            available: resourceModel.electricity.available,
+            shortage: resourceModel.electricity.shortage,
+            status: resourceModel.electricity.status,
+          },
+          shortageCount: resourceModel.alerts?.shortageCount ?? 0,
+          advisory: {
+            headline: advisory.headline,
+            summary: advisory.summary,
+            risk: advisory.risk,
+            provider: advisory.provider,
+            model: advisory.model,
+            fallback: Boolean(advisory.fallback),
+            notice: advisory.notice ?? null,
+            recommendations: advisory.recommendations ?? [],
+          },
+        };
+        memorySnapshots.unshift(item);
+        return item;
+      }
+
       const result = await query(INSERT_SNAPSHOT, [
         label,
         scenario.id,
@@ -239,6 +284,9 @@ export async function createSnapshotStore({ databaseUrl = null, dataDir = null }
     },
 
     async list(limit = 10) {
+      if (inMemoryStore) {
+        return memorySnapshots.slice(0, normalizeLimit(limit));
+      }
       const result = await query(SELECT_SNAPSHOTS, [
         normalizeLimit(limit),
       ]);
@@ -246,6 +294,13 @@ export async function createSnapshotStore({ databaseUrl = null, dataDir = null }
     },
 
     async health() {
+      if (inMemoryStore) {
+        return {
+          connected: true,
+          latencyMs: 0,
+          snapshotCount: memorySnapshots.length,
+        };
+      }
       const startedAt = performance.now();
       await query('SELECT 1 AS ok');
       const countResult = await query(

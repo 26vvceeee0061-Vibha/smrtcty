@@ -60,8 +60,8 @@ function isPrivatePath(relativePath) {
   return relativePath === 'package.json' || relativePath === 'package-lock.json';
 }
 
-export function createAppServer({ handleApi }) {
-  return createServer(async (request, response) => {
+export function createRequestHandler({ handleApi }) {
+  return async function handleRequest(request, response) {
     let url;
 
     try {
@@ -143,9 +143,14 @@ export function createAppServer({ handleApi }) {
         return;
       }
 
+      console.error('Static file serve error:', error);
       send(response, 500, 'Internal Server Error');
     }
-  });
+  };
+}
+
+export function createAppServer(runtime) {
+  return createServer(createRequestHandler(runtime));
 }
 
 /** Wires configuration, persistence, and LangChain into one runtime. */
@@ -297,20 +302,29 @@ if (isDirectRun) {
     });
 }
 
-let serverlessAppPromise = null;
+let serverlessHandlerPromise = null;
 
-async function getServerlessApp() {
-  if (!serverlessAppPromise) {
-    serverlessAppPromise = (async () => {
+async function getServerlessHandler() {
+  if (!serverlessHandlerPromise) {
+    serverlessHandlerPromise = (async () => {
       const runtime = await createRuntime();
-      return createAppServer(runtime);
+      return createRequestHandler(runtime);
     })();
   }
-  return serverlessAppPromise;
+  return serverlessHandlerPromise;
 }
 
 export default async function handler(req, res) {
-  const app = await getServerlessApp();
-  app.emit('request', req, res);
+  try {
+    const handleRequest = await getServerlessHandler();
+    await handleRequest(req, res);
+  } catch (error) {
+    console.error('Quantum Flux Serverless Runtime Error:', error);
+    if (!res.headersSent) {
+      res.statusCode = 500;
+      res.setHeader('Content-Type', 'text/plain; charset=utf-8');
+      res.end(`Internal Server Error: ${error?.message || error}`);
+    }
+  }
 }
 
