@@ -1,3 +1,3 @@
-import { handleRequest } from './_runtime.mjs';
+import { createRouteHandler } from './_runtime.mjs';
 
-export default handleRequest;
+export default createRouteHandler('/api/ai-brief');
