@@ -1,11 +1,6 @@
 {
   "version": 2,
-  "functions": {
-    "server.mjs": {
-      "includeFiles": "{index.html,favicon.svg,src/**,db/**}"
-    }
-  },
   "rewrites": [
-    { "source": "/api/(.*)", "destination": "/server.mjs" }
+    { "source": "/api/(.*)", "destination": "/api" }
   ]
 }
