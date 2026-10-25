@@ -5,10 +5,14 @@
   "type": "module",
   "description": "Quantum Flux — scenario-driven Smart City AI Command Center",
   "scripts": {
+    "build": "echo 'Build ready'",
     "start": "node server.mjs",
     "dev": "node server.mjs",
     "test": "node --test",
     "test:ui": "node scripts/browser-check.mjs"
+  },
+  "engines": {
+    "node": ">=20.x"
   },
   "dependencies": {
     "@electric-sql/pglite": "^0.5.11",
